@@ -30,7 +30,8 @@ module Mongo
             :allow_disk_use => 'allowDiskUse',
             :max_time_ms => 'maxTimeMS',
             :explain => 'explain',
-            :bypass_document_validation => 'bypassDocumentValidation'
+            :bypass_document_validation => 'bypassDocumentValidation',
+            :write_concern => 'writeConcern'
           ).freeze
 
           def_delegators :@view, :collection, :database, :read
@@ -74,10 +75,15 @@ module Mongo
 
           private
 
+          def write_concern
+            @options[:write_concern] ? Mongo::WriteConcern.get(@options[:write_concern]) : view.write_concern
+          end
+
           def aggregation_command
             command = BSON::Document.new(:aggregate => collection.name, :pipeline => pipeline)
             command[:cursor] = cursor if cursor
             command[:readConcern] = collection.read_concern if collection.read_concern
+            command[:writeConcern] = write_concern.options if write_concern
             command.merge!(Options::Mapper.transform_documents(options, MAPPINGS))
             command
           end

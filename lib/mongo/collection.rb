@@ -249,6 +249,8 @@ module Mongo
     #   provide results using a cursor.
     # @option options [ true, false ] :bypass_document_validation Whether or
     #   not to skip document level validation.
+    # @option options [ Hash ] :write_concern The write concern to use for the aggregation.
+    #   Note that the write concern is only relevant if the $out pipeline operator is specified.
     #
     # @return [ Aggregation ] The aggregation object.
     #

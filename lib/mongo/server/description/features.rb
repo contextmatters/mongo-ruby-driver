@@ -25,6 +25,8 @@ module Mongo
         #
         # @since 2.0.0
         MAPPINGS = {
+          :command_write_concern => 5,
+          :collation => 5,
           :find_command => 4,
           :list_collections => 3,
           :list_indexes => 3,

@@ -43,18 +43,32 @@ module Mongo
 
         private
 
-        def filter_selector(context)
-          return selector if context.features.write_command_enabled?
-          selector.reject{ |option, value| option.to_s == 'cursor' }
+        def filter_cursor_option(sel, context)
+          return sel if context.features.write_command_enabled?
+          sel.reject{ |option, value| option.to_s == 'cursor' }
+        end
+
+        def filter_write_concern_option(sel, context)
+          return sel unless sel[:writeConcern] || sel['writeConcern']
+          return sel if context.features.command_write_concern_enabled? &&
+              sel[:pipeline].any? { |op| op.key?('$out') || op.key?(:$out) }
+          sel.reject{ |option, value| option.to_s == 'writeConcern' }
+        end
+
+        def filter_for_mongos(sel, context)
+          if context.mongos? && read_pref = read.to_mongos
+            s = sel[:$query] ? sel : { :$query => sel }
+            s.merge(:$readPreference => read_pref)
+          else
+            sel
+          end
         end
 
         def update_selector(context)
-          if context.mongos? && read_pref = read.to_mongos
-            sel = selector[:$query] ? filter_selector(context) : { :$query => filter_selector(context) }
-            sel.merge(:$readPreference => read_pref)
-          else
-            filter_selector(context)
-          end
+          filtered_selector = filter_cursor_option(selector, context)
+          filtered_selector = filter_write_concern_option(filtered_selector, context)
+          filtered_selector = filter_for_mongos(filtered_selector, context)
+          filtered_selector
         end
       end
     end
