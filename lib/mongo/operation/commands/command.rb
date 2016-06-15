@@ -41,6 +41,18 @@ module Mongo
         def query_coll
           Database::COMMAND
         end
+
+        def filter_write_concern(sel, context)
+          return sel if context.features.command_write_concern_enabled?
+          sel.reject { |k| k == :writeConcern }
+        end
+
+        def message(context)
+          sel = update_selector(context)
+          sel = filter_write_concern(sel, context)
+          opts = update_options(context)
+          Protocol::Query.new(db_name, query_coll, sel, opts)
+        end
       end
     end
   end

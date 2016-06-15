@@ -150,6 +150,7 @@ module Mongo
     def command(operation, opts = {})
       preference = ServerSelector.get(client.options.merge(opts[:read])) if opts[:read]
       server = preference ? preference.select_server(cluster, false) : cluster.next_primary(false)
+      operation[:writeConcern] = opts[:write_concern].options if opts[:write_concern]
       Operation::Commands::Command.new({
         :selector => operation,
         :db_name => name,

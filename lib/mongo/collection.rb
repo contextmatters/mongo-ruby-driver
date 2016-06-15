@@ -171,7 +171,8 @@ module Mongo
     #
     # @since 2.0.0
     def create
-      database.command({ :create => name }.merge(options))
+      opts = write_concern ? { write_concern: write_concern } : {}
+      database.command({ :create => name }.merge(options), opts)
     end
 
     # Drop the collection. Will also drop all indexes associated with the

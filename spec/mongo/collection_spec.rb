@@ -314,6 +314,10 @@ describe Mongo::Collection do
       authorized_client.database
     end
 
+    after do
+      collection.drop
+    end
+
     context 'when the collection has no options' do
 
       let(:collection) do
@@ -322,10 +326,6 @@ describe Mongo::Collection do
 
       let!(:response) do
         collection.create
-      end
-
-      after do
-        collection.drop
       end
 
       it 'executes the command' do
@@ -338,6 +338,35 @@ describe Mongo::Collection do
     end
 
     context 'when the collection has options' do
+
+      context 'when a write concern option is specified on the collection' do
+
+        let(:collection) do
+          described_class.new(database, :specs, write: write_concern)
+        end
+
+        let(:write_concern) { { w: WRITE_CONCERN[:w] + 1 } }
+
+        let(:response) do
+          collection.create
+        end
+
+        context 'when the server supports commands taking a write concern', if: command_write_concern_enabled? do
+
+          it 'passes the write concern option through to the command' do
+            expect {
+              response
+            }.to raise_exception(Mongo::Error::OperationFailure)
+          end
+        end
+
+        context 'when the server does not support commands taking a write concern', unless: command_write_concern_enabled? do
+
+          it 'does not pass the write concern option through to the command' do
+            expect(response).to be_successful
+          end
+        end
+      end
 
       context 'when the collection is capped' do
 
