@@ -59,6 +59,7 @@ module Mongo
       def connect!
         unless socket && socket.connectable?
           @socket = address.socket(timeout, ssl_options)
+          puts "Connecting new socket: #{@socket.object_id} with options: #{options}"
           socket.connect!
           authenticate!
         end
@@ -166,6 +167,7 @@ module Mongo
         if options[:user]
           user = Auth::User.new(Options::Redacted.new(:auth_mech => default_mechanism).merge(options))
           Auth.get(user).login(self)
+          puts "Authenticated socket: #{socket.object_id}"
         end
       end
 

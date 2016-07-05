@@ -106,6 +106,7 @@ module Mongo
         connection = checkout
         yield(connection)
       ensure
+        puts "Checking in connection with socket: #{connection.send(:socket).object_id}" if connection && connection.send(:socket)
         checkin(connection) if connection
       end
 
