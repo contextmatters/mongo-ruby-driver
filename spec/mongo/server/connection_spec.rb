@@ -455,12 +455,32 @@ describe Mongo::Server::Connection do
 
     context 'when timeout options are provided' do
 
+      before do
+        authorized_collection.insert_one( a: 1)
+      end
+
       let(:connection) do
         described_class.new(server, socket_timeout: 10)
       end
 
       it 'sets the timeout' do
         expect(connection.timeout).to eq(10)
+      end
+
+      let(:client) do
+        authorized_client.with(socket_timeout: 1.5)
+      end
+
+      it 'raises a timeout when it expires' do
+        start = Time.now
+        begin
+          Timeout::timeout(3) do
+            client[authorized_collection.name].find("$where" => "sleep(10000) || true").first
+          end
+        rescue
+        end
+        end_time = Time.now
+        expect(end_time - start).to be_within(0.2).of(1.5)
       end
     end
 
