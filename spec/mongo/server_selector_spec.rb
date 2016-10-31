@@ -150,6 +150,7 @@ describe Mongo::ServerSelector do
 
       let(:cluster) do
         double('cluster').tap do |c|
+          allow(c).to receive(:topology).and_return(topology)
           allow(c).to receive(:servers).and_return(servers)
           allow(c).to receive(:single?).and_return(false)
           allow(c).to receive(:sharded?).and_return(false)
@@ -179,6 +180,7 @@ describe Mongo::ServerSelector do
 
       let(:cluster) do
         double('cluster').tap do |c|
+          allow(c).to receive(:topology).and_return(topology)
           allow(c).to receive(:servers).and_return(servers)
           allow(c).to receive(:single?).and_return(false)
           allow(c).to receive(:sharded?).and_return(false)
@@ -220,6 +222,7 @@ describe Mongo::ServerSelector do
 
       let(:cluster) do
         double('cluster').tap do |c|
+          allow(c).to receive(:topology).and_return(topology)
           allow(c).to receive(:servers).and_return(servers)
           allow(c).to receive(:single?).and_return(false)
           allow(c).to receive(:sharded?).and_return(false)
@@ -248,6 +251,7 @@ describe Mongo::ServerSelector do
 
       let(:cluster) do
         double('cluster').tap do |c|
+          allow(c).to receive(:topology).and_return(topology)
           allow(c).to receive(:servers).and_return(servers)
           allow(c).to receive(:single?).and_return(single)
           allow(c).to receive(:sharded?).and_return(sharded)
