@@ -6,12 +6,12 @@ describe Mongo::Cluster::Topology::Single do
     Mongo::Address.new('127.0.0.1:27017')
   end
 
-  let(:topology) do
-    described_class.new({})
+  let(:monitoring) do
+    Mongo::Monitoring.new(monitoring: false)
   end
 
-  let(:monitoring) do
-    Mongo::Monitoring.new
+  let(:topology) do
+    described_class.new({}, monitoring)
   end
 
   let(:listeners) do
@@ -19,7 +19,7 @@ describe Mongo::Cluster::Topology::Single do
   end
 
   let(:cluster) do
-    double('cluster').tap do |cl|
+    double('cluster', topology: topology).tap do |cl|
       allow(cl).to receive(:app_metadata).and_return(app_metadata)
     end
   end
@@ -88,6 +88,94 @@ describe Mongo::Cluster::Topology::Single do
 
     it 'returns true' do
       expect(topology).to be_single
+    end
+  end
+
+  describe '#has_readable_servers?' do
+
+    let(:cluster) do
+      double('cluster', servers: servers, single?: true)
+    end
+
+    let(:selector) do
+      Mongo::ServerSelector.get(mode: :primary)
+    end
+
+    context 'when using a direct connection to a primary' do
+
+      let(:servers) do
+        [ double('server', primary?: true) ]
+      end
+
+      it 'returns true' do
+        expect(topology).to have_readable_server(cluster, selector)
+      end
+    end
+
+    context 'when using a direct connection to a secondary' do
+
+      let(:servers) do
+        [ double('server', secondary?: true) ]
+      end
+
+      it 'returns true' do
+        expect(topology).to have_readable_server(cluster, selector)
+      end
+    end
+
+    context 'when using a direct connection to an arbiter' do
+
+      let(:servers) do
+        [ double('server', secondary?: true) ]
+      end
+
+      it 'returns true' do
+        expect(topology).to have_readable_server(cluster, selector)
+      end
+    end
+
+    context 'when no servers have been scanned' do
+
+      let(:servers) do
+        []
+      end
+
+      it 'returns false' do
+        expect(topology).to_not have_readable_server(cluster, selector)
+      end
+    end
+  end
+
+  describe '#has_writable_servers?' do
+
+    context 'when the server is a primary' do
+
+      let(:server) do
+        double('server', :primary? => true)
+      end
+
+      let(:cluster) do
+        double('cluster', servers: [ server ])
+      end
+
+      it 'returns true' do
+        expect(topology).to have_writable_server(cluster)
+      end
+    end
+
+    context 'when the server is not a primary (e.g. direct connect to secondary)' do
+
+      let(:server) do
+        double('server', :primary? => false)
+      end
+
+      let(:cluster) do
+        double('cluster', servers: [ server ])
+      end
+
+      it 'returns false' do
+        expect(topology).to_not have_writable_server(cluster)
+      end
     end
   end
 
