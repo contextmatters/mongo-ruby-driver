@@ -94,6 +94,16 @@ module Mongo
       # @since 2.4.0
       LAST_WRITE_DATE = 'lastWriteDate'.freeze
 
+      # Constant for the idleWritePeriodMillis value.
+      #
+      # @since 2.4.0
+      IDLE_WRITE_PERIOD_MS = 'idleWritePeriodMillis'.freeze
+
+      # The default idle write period ms value.
+      #
+      # @since 2.4.0
+      DEFAULT_IDLE_WRITE_PERIOD_MS = 10 * 1000
+
       # Constant for reading the me field.
       #
       # @since 2.1.0
@@ -380,6 +390,18 @@ module Mongo
       # @since 2.4.0
       def last_write_date
         config[LAST_WRITE][LAST_WRITE_DATE] if config[LAST_WRITE]
+      end
+
+      # Get the idle write period milliseconds value.
+      #
+      # @example Get the idleWritePeriodMillis value.
+      #   description.idle_write_period_ms
+      #
+      # @return [ Time ] The idle write period in milliseconds.
+      #
+      # @since 2.4.0
+      def idle_write_period_ms
+        config[IDLE_WRITE_PERIOD_MS] || DEFAULT_IDLE_WRITE_PERIOD_MS
       end
 
       # Is the server a mongos?

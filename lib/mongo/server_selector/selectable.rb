@@ -154,7 +154,6 @@ module Mongo
         elsif cluster.sharded?
           near_servers(cluster.servers).each { |server| validate_max_staleness_support!(server) }
         else
-          validate_max_staleness_value!(cluster)
           select(cluster.servers)
         end
       end
@@ -227,16 +226,19 @@ module Mongo
 
         if primary
           candidates.select do |server|
-            validate_max_staleness_support!(server)
+            idle_write_period_ms = primary.idle_write_period_ms
+            validate_max_staleness!(server, max_staleness_ms, idle_write_period_ms)
             staleness = (server.last_scan - server.last_write_date) -
-                        (primary.last_scan - primary.last_write_date)  +
-                        (server.heartbeat_frequency * 1000)
+                          (primary.last_scan - primary.last_write_date)  +
+                          (server.heartbeat_frequency * 1000)
             staleness <= max_staleness_ms
           end
         else
-          max_write_date = candidates.collect(&:last_write_date).max
+          max_write_date = candidates.max_by(&:last_write_date).last_write_date
+          secondary = candidates.select(&:secondary?).max_by(&:last_write_date)
+          idle_write_period_ms = secondary ? secondary.idle_write_period_ms : Server::Monitor::HEARTBEAT_FREQUENCY
           candidates.select do |server|
-            validate_max_staleness_support!(server)
+            validate_max_staleness!(server, max_staleness_ms, idle_write_period_ms)
             staleness = max_write_date - server.last_write_date + (server.heartbeat_frequency * 1000)
             staleness <= max_staleness_ms
           end
@@ -257,10 +259,14 @@ module Mongo
         end
       end
 
-      def validate_max_staleness_value!(cluster)
-        return unless @max_staleness
-        heartbeat_frequency = cluster.options[:heartbeat_frequency] || Server::Monitor::HEARTBEAT_FREQUENCY
-        if @max_staleness < heartbeat_frequency * 2
+      def validate_max_staleness!(server, max_staleness_ms, idle_write_period_ms)
+        validate_max_staleness_support!(server)
+        validate_max_staleness_value!(server, max_staleness_ms, idle_write_period_ms)
+      end
+
+      def validate_max_staleness_value!(server, max_staleness_ms, idle_write_period_ms)
+        heartbeat_frequency_seconds = server.heartbeat_frequency || Server::Monitor::HEARTBEAT_FREQUENCY
+        if max_staleness_ms < (heartbeat_frequency_seconds * 1000) + idle_write_period_ms
           raise Error::InvalidServerPreference.new(Error::InvalidServerPreference::INVALID_MAX_STALENESS)
         end
       end

@@ -100,7 +100,7 @@ describe Mongo::ServerSelector::SecondaryPreferred do
       end
 
       let(:expected) do
-        { :mode => 'secondaryPreferred', maxStalenessMS: 60000 }
+        { :mode => 'secondaryPreferred', maxStalenessSeconds: 60 }
       end
 
       it 'returns a read preference formatted for mongos' do

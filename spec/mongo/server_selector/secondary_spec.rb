@@ -96,7 +96,7 @@ describe Mongo::ServerSelector::Secondary do
       end
 
       let(:expected) do
-        { :mode => 'secondary', maxStalenessMS: 60000 }
+        { :mode => 'secondary', maxStalenessSeconds: 60 }
       end
 
       it 'returns a read preference formatted for mongos' do

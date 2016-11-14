@@ -97,7 +97,7 @@ describe Mongo::ServerSelector::PrimaryPreferred do
       end
 
       let(:expected) do
-        { :mode => 'primaryPreferred', maxStalenessMS: 60000 }
+        { :mode => 'primaryPreferred', maxStalenessSeconds: 60 }
       end
 
       it 'returns a read preference formatted for mongos' do
