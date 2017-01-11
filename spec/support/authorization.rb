@@ -31,9 +31,13 @@ ADDRESSES = ENV['MONGODB_ADDRESSES'] ? ENV['MONGODB_ADDRESSES'].split(',').freez
 # The topology type.
 #
 # @since 2.0.0
-CONNECT = ENV['RS_ENABLED'] == 'true' ? { connect: :replica_set, replica_set: ENV['RS_NAME'] } :
-          ENV['SHARDED_ENABLED'] == 'true' ? { connect: :sharded } :
-          { connect: :direct }
+# CONNECT = ENV['RS_ENABLED'] == 'true' ? { connect: :replica_set, replica_set: ENV['RS_NAME'] } :
+#           ENV['SHARDED_ENABLED'] == 'true' ? { connect: :sharded } :
+#           { connect: :direct }
+
+CONNECT = ENV['TOPOLOGY_TYPE'] == 'replica_set' ? { connect: :replica_set } :
+    ENV['TOPOLOGY_TYPE'] == 'sharded_cluster' ? { connect: :sharded } :
+        { connect: :direct }
 
 # The write concern to use in the tests.
 #
