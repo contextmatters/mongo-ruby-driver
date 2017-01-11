@@ -47,7 +47,7 @@ WRITE_CONCERN = CONNECT[:connect] == :replica_set ? { w: ADDRESSES.size } : { w:
 # Whether to use SSL.
 #
 # @since 2.0.3
-SSL = ENV['SSL_ENABLED'] == 'true'
+SSL = ENV['SSL'] == 'ssl'
 
 # SSL options.
 #
